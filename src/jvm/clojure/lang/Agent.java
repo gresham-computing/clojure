@@ -150,7 +150,7 @@ static class Action implements Runnable{
 				popped = action.agent.aq.compareAndSet(prior, next);
 				}
 
-			if(error == null && next.q.count() > 0)
+			if(error == null && next.q != null && next.q.count() > 0)
 				((Action) next.q.peek()).execute();
 			}
 		finally
@@ -224,7 +224,7 @@ synchronized public Object restart(Object newState, boolean clearActions){
 			restarted = aq.compareAndSet(prior, new ActionQueue(prior.q, null));
 			}
 
-		if(prior.q.count() > 0)
+		if(prior.q != null && prior.q.count() > 0)
 			((Action) prior.q.peek()).execute();
 		}
 
@@ -264,7 +264,7 @@ void enqueue(Action action){
 		queued = aq.compareAndSet(prior, new ActionQueue((IPersistentStack)prior.q.cons(action), prior.error));
 		}
 
-	if(prior.q.count() == 0 && prior.error == null)
+	if(prior.q != null && prior.q.count() == 0 && prior.error == null)
 		action.execute();
 }
 

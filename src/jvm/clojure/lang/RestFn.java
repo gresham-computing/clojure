@@ -127,7 +127,7 @@ protected Object doInvoke(Object arg1, Object arg2, Object arg3, Object arg4, Ob
 
 
 public Object applyTo(ISeq args) {
-	if(RT.boundedLength(args, getRequiredArity()) <= getRequiredArity())
+	if(args == null || RT.boundedLength(args, getRequiredArity()) <= getRequiredArity())
 		{
 		return AFn.applyToHelper(this, Util.ret1(args,args = null));
 		}

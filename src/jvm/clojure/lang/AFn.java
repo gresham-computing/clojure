@@ -145,6 +145,9 @@ public Object applyTo(ISeq arglist) {
 }
 
 static public Object applyToHelper(IFn ifn, ISeq arglist) {
+	if (arglist == null) {
+		return ifn.invoke();
+	}
 	switch(RT.boundedLength(arglist, 20))
 		{
 		case 0:

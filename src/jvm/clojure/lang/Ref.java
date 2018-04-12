@@ -96,16 +96,17 @@ public Ref(Object initVal,IPersistentMap meta) {
 
 // ok out of transaction
 Object currentVal(){
+	ReentrantReadWriteLock.ReadLock readLock = lock.readLock();
 	try
 		{
-		lock.readLock().lock();
+		readLock.lock();
 		if(tvals != null)
 			return tvals.val;
 		throw new IllegalStateException(this.toString() + " is unbound.");
 		}
 	finally
 		{
-		lock.readLock().unlock();
+		readLock.unlock();
 		}
 }
 
@@ -177,22 +178,24 @@ public void touch(){
 
 //*/
 boolean isBound(){
+	ReentrantReadWriteLock.ReadLock readLock = lock.readLock();
 	try
 		{
-		lock.readLock().lock();
+		readLock.lock();
 		return tvals != null;
 		}
 	finally
 		{
-		lock.readLock().unlock();
+		readLock.unlock();
 		}
 }
 
 
 public void trimHistory(){
+	ReentrantReadWriteLock.WriteLock writeLock = lock.writeLock();
 	try
 		{
-		lock.writeLock().lock();
+		writeLock.lock();
 		if(tvals != null)
 			{
 			tvals.next = tvals;
@@ -201,19 +204,20 @@ public void trimHistory(){
 		}
 	finally
 		{
-		lock.writeLock().unlock();
+		writeLock.unlock();
 		}
 }
 
 public int getHistoryCount(){
+	ReentrantReadWriteLock.WriteLock writeLock = lock.writeLock();
 	try
 		{
-		lock.writeLock().lock();
+		writeLock.lock();
 		return histCount();
 		}
 	finally
 		{
-		lock.writeLock().unlock();
+		writeLock.unlock();
 		}	
 }
 

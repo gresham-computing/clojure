@@ -44,31 +44,34 @@ public MultiFn(String name, IFn dispatchFn, Object defaultDispatchVal, IRef hier
 }
 
 public MultiFn reset(){
-	rw.writeLock().lock();
+	ReentrantReadWriteLock.WriteLock writeLock = rw.writeLock();
+	writeLock.lock();
 	try{
 		methodTable = methodCache = preferTable = PersistentHashMap.EMPTY;
 		cachedHierarchy = null;
 		return this;
 	}
 	finally {
-		rw.writeLock().unlock();
+		writeLock.unlock();
 	}
 }
 
 public MultiFn addMethod(Object dispatchVal, IFn method) {
-	rw.writeLock().lock();
+	ReentrantReadWriteLock.WriteLock writeLock = rw.writeLock();
+	writeLock.lock();
 	try{
 		methodTable = getMethodTable().assoc(dispatchVal, method);
 		resetCache();
 		return this;
 	}
 	finally {
-		rw.writeLock().unlock();
+		writeLock.unlock();
 	}
 }
 
 public MultiFn removeMethod(Object dispatchVal) {
-	rw.writeLock().lock();
+	ReentrantReadWriteLock.WriteLock writeLock = rw.writeLock();
+	writeLock.lock();
 	try
 		{
 		methodTable = getMethodTable().without(dispatchVal);
@@ -77,7 +80,7 @@ public MultiFn removeMethod(Object dispatchVal) {
 		}
 	finally
 		{
-		rw.writeLock().unlock();
+		writeLock.unlock();
 		}
 }
 
@@ -128,16 +131,17 @@ private boolean dominates(Object x, Object y) {
 }
 
 private IPersistentMap resetCache() {
-	rw.writeLock().lock();
+	ReentrantReadWriteLock.WriteLock lock = rw.writeLock();
 	try
 		{
+		lock.lock();
 		methodCache = getMethodTable();
 		cachedHierarchy = hierarchy.deref();
 		return methodCache;
 		}
 	finally
 		{
-		rw.writeLock().unlock();
+		lock.unlock();
 		}
 }
 
@@ -159,7 +163,8 @@ private IFn getFn(Object dispatchVal) {
 }
 
 private IFn findAndCacheBestMethod(Object dispatchVal) {
-	rw.readLock().lock();
+	ReentrantReadWriteLock.ReadLock readLock = rw.readLock();
+	readLock.lock();
 	Object bestValue;
 	IPersistentMap mt = methodTable;
 	IPersistentMap pt = preferTable;
@@ -192,14 +197,15 @@ private IFn findAndCacheBestMethod(Object dispatchVal) {
 		}
 	finally
 		{
-		rw.readLock().unlock();
+		readLock.unlock();
 		}
 
 
 	//ensure basis has stayed stable throughout, else redo
-	rw.writeLock().lock();
+	ReentrantReadWriteLock.WriteLock writeLock = rw.writeLock();
 	try
 		{
+		writeLock.lock();
 		if( mt == methodTable &&
 		    pt == preferTable &&
 		    ch == cachedHierarchy &&
@@ -217,7 +223,7 @@ private IFn findAndCacheBestMethod(Object dispatchVal) {
 		}
 	finally
 		{
-		rw.writeLock().unlock();
+		writeLock.unlock();
 		}
 }
 

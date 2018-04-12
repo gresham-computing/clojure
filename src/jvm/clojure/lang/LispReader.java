@@ -1057,7 +1057,7 @@ public static class SyntaxQuoteReader extends AFn{
 				if(sym.ns != null)
 					maybeClass = Compiler.currentNS().getMapping(
 							Symbol.intern(null, sym.ns));
-				if(maybeClass instanceof Class)
+				if(maybeClass != null && maybeClass instanceof Class)
 					{
 					// Classname/foo -> package.qualified.Classname/foo
 					sym = Symbol.intern(

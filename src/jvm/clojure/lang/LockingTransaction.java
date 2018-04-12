@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 @SuppressWarnings({"SynchronizeOnNonFinalField"})
 public class LockingTransaction{
@@ -399,9 +400,10 @@ Object doGet(Ref ref){
 		throw retryex;
 	if(vals.containsKey(ref))
 		return vals.get(ref);
+	ReentrantReadWriteLock.ReadLock lock = ref.lock.readLock();
 	try
 		{
-		ref.lock.readLock().lock();
+		lock.lock();
 		if(ref.tvals == null)
 			throw new IllegalStateException(ref.toString() + " is unbound.");
 		Ref.TVal ver = ref.tvals;
@@ -413,7 +415,7 @@ Object doGet(Ref ref){
 		}
 	finally
 		{
-		ref.lock.readLock().unlock();
+		lock.unlock();
 		}
 	//no version of val precedes the read point
 	ref.faults.incrementAndGet();
@@ -440,11 +442,12 @@ void doEnsure(Ref ref){
 		throw retryex;
 	if(ensures.contains(ref))
 		return;
-	ref.lock.readLock().lock();
+	ReentrantReadWriteLock.ReadLock lock = ref.lock.readLock();
+	lock.lock();
 
 	//someone completed a write after our snapshot
 	if(ref.tvals != null && ref.tvals.point > readPoint) {
-        ref.lock.readLock().unlock();
+		lock.unlock();
         throw retryex;
     }
 
@@ -453,7 +456,7 @@ void doEnsure(Ref ref){
 	//writer exists
 	if(refinfo != null && refinfo.running())
 		{
-		ref.lock.readLock().unlock();
+			lock.unlock();
 
 		if(refinfo != info) //not us, ensure is doomed
 			{
@@ -470,14 +473,15 @@ Object doCommute(Ref ref, IFn fn, ISeq args) {
 	if(!vals.containsKey(ref))
 		{
 		Object val = null;
+		ReentrantReadWriteLock.ReadLock lock = ref.lock.readLock();
 		try
 			{
-			ref.lock.readLock().lock();
+			lock.lock();
 			val = ref.tvals == null ? null : ref.tvals.val;
 			}
 		finally
 			{
-			ref.lock.readLock().unlock();
+			lock.unlock();
 			}
 		vals.put(ref, val);
 		}

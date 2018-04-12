@@ -4056,7 +4056,7 @@ static public class FnExpr extends ObjExpr{
 			if(variadicMethod != null)
 				methods = RT.conj(methods, variadicMethod);
 
-			if(fn.canBeDirect){
+			if(fn.canBeDirect && methods != null){
 				for(FnMethod fm : (Collection<FnMethod>)methods)
 					{
 					if(fm.locals != null)
@@ -8071,7 +8071,9 @@ static public class NewInstanceExpr extends ObjExpr{
 
 	static String[] interfaceNames(IPersistentVector interfaces){
 		int icnt = interfaces.count();
-		String[] inames = icnt > 0 ? new String[icnt] : null;
+		if(icnt <= 0)
+			return null;
+		String[] inames = new String[icnt];
 		for(int i=0;i<icnt;i++)
 			inames[i] = slashname((Class) interfaces.nth(i));
 		return inames;
