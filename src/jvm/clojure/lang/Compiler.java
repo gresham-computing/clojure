@@ -1592,6 +1592,16 @@ static class InstanceMethodExpr extends MethodExpr{
 			target.emit(C.EXPRESSION, objx, gen);
 			//if(!method.getDeclaringClass().isInterface())
 			gen.checkCast(type);
+			// Null check the object
+			Label executeLabel = gen.newLabel();
+			gen.dup();
+			gen.ifNonNull(executeLabel);
+			// We end up here if we didn't jump, meaning that f is null
+			gen.visitLineNumber(line, gen.mark());
+			gen.throwException(getType(NullPointerException.class),
+					"Can't invoke nothing");
+			// Jump over the throw if f is not null
+			gen.mark(executeLabel);
 			MethodExpr.emitTypedArgs(objx, gen, method.getParameterTypes(), args);
 			gen.visitLineNumber(line, gen.mark());
 			if(context == C.RETURN)
